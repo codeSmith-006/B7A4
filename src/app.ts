@@ -6,6 +6,7 @@ import swaggerUi from "swagger-ui-express";
 import config from "./config/index.js";
 import { swaggerSpec } from "./config/swagger.js";
 import router from "./modules/route.js";
+import { globalErrorHandler } from "./middleware/errorHandler.js";
 
 const app: Application = express();
 
@@ -20,6 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use("/api/v1", router);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use(globalErrorHandler)
 
 app.get("/", (_req: Request, res: Response) => {
   res.send("Hello world");
