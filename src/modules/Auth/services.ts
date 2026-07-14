@@ -2,10 +2,10 @@ import { UserRole } from "../../../generated/prisma/enums";
 import config from "../../config/index.js";
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
-import { RegisterPayload } from "./interface";
+import { LoginPayload, RegisterPayload } from "./interface";
 import httpStatus from "http-status";
 import bcrypt from "bcryptjs";
- 
+import { createToken } from "../../utils/jwt";
 
 // register user service
 const registerUserIntoDB = async (payload: RegisterPayload) => {
@@ -49,6 +49,52 @@ const registerUserIntoDB = async (payload: RegisterPayload) => {
   return user;
 };
 
+// login user
+const loginUserDB = async (payload: LoginPayload) => {
+  const user = await prisma.user.findUnique({
+    where: { email: payload.email },
+  });
+
+  if (!user) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid credentials");
+  }
+
+  const isPasswordMatched = await bcrypt.compare(
+    payload.password,
+    user.password,
+  );
+
+  if (!isPasswordMatched) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid credentials");
+  }
+
+  if (user.status !== "ACTIVE") {
+    throw new ApiError(httpStatus.FORBIDDEN, "User is blocked");
+  }
+
+  const accessToken = createToken(
+    {
+      userId: user.id,
+      role: user.role,
+      email: user.email,
+    },
+    config.jwtAccessSecret,
+    config.jwtAccessExpiresIn as import("jsonwebtoken").SignOptions["expiresIn"],
+  );
+
+  return {
+    accessToken,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+    },
+  };
+};
+
 export const authService = {
   registerUserIntoDB,
+  loginUserDB
 };
