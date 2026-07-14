@@ -1,8 +1,28 @@
+enum UserRole {
+  TENANT
+  LANDLORD
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+}
+
 model User {
-  id        String    @id @default(uuid())
-  email     String    @unique
-  name      String?
-  profile   Profile?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id              String          @id @default(uuid())
+  name            String
+  email           String          @unique
+  password        String
+  phone           String?
+  role            UserRole
+  status          UserStatus      @default(ACTIVE)
+  bio             String?
+  avatar          String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  properties      Property[]
+  rentalRequests  RentalRequest[] @relation("TenantRentalRequests")
+  reviews         Review[]
+  payments        Payment[]
 }

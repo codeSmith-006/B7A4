@@ -1,0 +1,29 @@
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
+enum PaymentProvider {
+  STRIPE
+}
+
+model Payment {
+  id                String          @id @default(uuid())
+  rentalRequestId   String          @unique
+  userId            String
+  amount            Decimal         @db.Decimal(10, 2)
+  provider          PaymentProvider @default(STRIPE)
+  status            PaymentStatus   @default(PENDING)
+  currency          String          @default("usd")
+  transactionId     String?         @unique
+  paymentIntentId   String?         @unique
+  clientSecret      String?
+  paidAt            DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  rentalRequest     RentalRequest   @relation(fields: [rentalRequestId], references: [id], onDelete: Cascade)
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
