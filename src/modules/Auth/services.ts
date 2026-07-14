@@ -1,10 +1,11 @@
 import { UserRole } from "../../../generated/prisma/enums";
-import { prisma } from "../../lib/prisma";
-import { ApiError } from "../../utils/ApiError";
+import config from "../../config/index.js";
+import { prisma } from "../../lib/prisma.js";
+import { ApiError } from "../../utils/ApiError.js";
 import { RegisterPayload } from "./interface";
 import httpStatus from "http-status";
 import bcrypt from "bcryptjs";
-import config from "../../config";
+ 
 
 // register user service
 const registerUserIntoDB = async (payload: RegisterPayload) => {
