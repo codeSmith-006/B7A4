@@ -21,6 +21,13 @@ const options: swaggerJSDoc.Options = {
       },
     ],
     components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
       schemas: {
         RegisterPayload: {
           type: "object",
@@ -94,6 +101,36 @@ const options: swaggerJSDoc.Options = {
                     status: { type: "string", example: "ACTIVE" },
                   },
                 },
+              },
+            },
+          },
+        },
+        MeResponse: {
+          type: "object",
+          properties: {
+            statusCode: { type: "integer", example: 200 },
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Profile retrieved successfully" },
+            data: {
+              type: "object",
+              properties: {
+                id: { type: "string", example: "cuid_or_uuid" },
+                name: { type: "string", example: "Ryan Rehan" },
+                email: { type: "string", format: "email", example: "ryan@example.com" },
+                phone: { type: "string", example: "+8801700000000", nullable: true },
+                bio: { type: "string", example: "Looking for a city apartment.", nullable: true },
+                avatar: {
+                  type: "string",
+                  example: "https://example.com/avatar.jpg",
+                  nullable: true,
+                },
+                role: {
+                  type: "string",
+                  enum: ["ADMIN", "LANDLORD", "TENANT"],
+                  example: "TENANT",
+                },
+                status: { type: "string", example: "ACTIVE" },
+                createdAt: { type: "string", format: "date-time" },
               },
             },
           },

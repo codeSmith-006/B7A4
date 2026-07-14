@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authController } from "./controller.js";
+import { auth } from "../../middleware/auth.js";
 
 const router = Router();
 
@@ -56,5 +57,28 @@ router.post("/register", authController.register);
  *         description: User is blocked
  */
 router.post("/login", authController.login);
+
+/**
+ * @openapi
+ * /api/v1/auth/me:
+ *   get:
+ *     tags:
+ *       - Auth
+ *     summary: Get the authenticated user's profile
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profile retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MeResponse'
+ *       401:
+ *         description: Authentication required or user not found
+ *       403:
+ *         description: User is blocked or access denied
+ */
+router.get("/me", auth(), authController.userProfile);
 
 export const authRoutes = router;

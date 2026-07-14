@@ -94,7 +94,26 @@ const loginUserDB = async (payload: LoginPayload) => {
   };
 };
 
+// user profile 
+const userProfileService = async (userId: string) => {
+  return prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      bio: true,
+      avatar: true,
+      role: true,
+      status: true,
+      createdAt: true,
+    },
+  });
+};
+
 export const authService = {
   registerUserIntoDB,
-  loginUserDB
+  loginUserDB,
+  userProfileService
 };
