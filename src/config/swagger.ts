@@ -27,6 +27,10 @@ const options: swaggerJSDoc.Options = {
         name: "Rental",
         description: "Rental request endpoints",
       },
+      {
+        name: "Property",
+        description: "Property listing endpoints",
+      },
     ],
     components: {
       securitySchemes: {
@@ -355,6 +359,200 @@ const options: swaggerJSDoc.Options = {
                 $ref: "#/components/schemas/RentalRequest",
               },
             },
+          },
+        },
+        PropertyPayload: {
+          type: "object",
+          required: ["title", "description", "address", "city", "rent", "bedrooms", "bathrooms", "categoryId"],
+          properties: {
+            title: { type: "string", example: "Modern city apartment" },
+            description: { type: "string", example: "A bright apartment near public transport." },
+            address: { type: "string", example: "123 Lake Road" },
+            city: { type: "string", example: "Dhaka" },
+            area: { type: "string", example: "Gulshan" },
+            rent: { type: "number", example: 1200 },
+            bedrooms: { type: "integer", example: 2 },
+            bathrooms: { type: "integer", example: 2 },
+            size: { type: "integer", example: 950 },
+            amenities: {
+              type: "array",
+              items: { type: "string" },
+              example: ["WiFi", "Parking", "Elevator"],
+            },
+            images: {
+              type: "array",
+              items: { type: "string" },
+              example: ["https://example.com/property.jpg"],
+            },
+            status: {
+              type: "string",
+              enum: ["AVAILABLE", "UNAVAILABLE"],
+              example: "AVAILABLE",
+            },
+            categoryId: { type: "string", example: "category_uuid" },
+          },
+        },
+        PropertyUpdatePayload: {
+          type: "object",
+          properties: {
+            title: { type: "string", example: "Updated city apartment" },
+            description: { type: "string", example: "Updated property description." },
+            address: { type: "string", example: "123 Lake Road" },
+            city: { type: "string", example: "Dhaka" },
+            area: { type: "string", example: "Gulshan" },
+            rent: { type: "number", example: 1300 },
+            bedrooms: { type: "integer", example: 2 },
+            bathrooms: { type: "integer", example: 2 },
+            size: { type: "integer", example: 950 },
+            amenities: {
+              type: "array",
+              items: { type: "string" },
+              example: ["WiFi", "Parking", "Elevator"],
+            },
+            images: {
+              type: "array",
+              items: { type: "string" },
+              example: ["https://example.com/property.jpg"],
+            },
+            status: {
+              type: "string",
+              enum: ["AVAILABLE", "UNAVAILABLE"],
+              example: "AVAILABLE",
+            },
+            categoryId: { type: "string", example: "category_uuid" },
+          },
+        },
+        PropertyReview: {
+          type: "object",
+          properties: {
+            id: { type: "string", example: "review_uuid" },
+            rating: { type: "integer", example: 5 },
+            comment: { type: "string", example: "Clean property and great location." },
+            propertyId: { type: "string", example: "property_uuid" },
+            tenantId: { type: "string", example: "tenant_uuid" },
+            rentalRequestId: { type: "string", example: "rental_uuid" },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+            tenant: {
+              type: "object",
+              properties: {
+                id: { type: "string", example: "tenant_uuid" },
+                name: { type: "string", example: "Ryan Rehan" },
+              },
+            },
+          },
+        },
+        Property: {
+          type: "object",
+          properties: {
+            id: { type: "string", example: "property_uuid" },
+            title: { type: "string", example: "Modern city apartment" },
+            description: { type: "string", example: "A bright apartment near public transport." },
+            address: { type: "string", example: "123 Lake Road" },
+            city: { type: "string", example: "Dhaka" },
+            area: { type: "string", example: "Gulshan", nullable: true },
+            rent: { type: "string", example: "1200.00" },
+            bedrooms: { type: "integer", example: 2 },
+            bathrooms: { type: "integer", example: 2 },
+            size: { type: "integer", example: 950, nullable: true },
+            amenities: {
+              type: "array",
+              items: { type: "string" },
+              example: ["WiFi", "Parking", "Elevator"],
+            },
+            images: {
+              type: "array",
+              items: { type: "string" },
+              example: ["https://example.com/property.jpg"],
+            },
+            status: {
+              type: "string",
+              enum: ["AVAILABLE", "UNAVAILABLE"],
+              example: "AVAILABLE",
+            },
+            createdAt: { type: "string", format: "date-time" },
+            category: {
+              $ref: "#/components/schemas/Category",
+            },
+            landlord: {
+              $ref: "#/components/schemas/RentalUserSummary",
+            },
+            _count: {
+              type: "object",
+              properties: {
+                reviews: { type: "integer", example: 3 },
+              },
+            },
+          },
+        },
+        PropertyDetails: {
+          allOf: [
+            {
+              $ref: "#/components/schemas/Property",
+            },
+            {
+              type: "object",
+              properties: {
+                reviews: {
+                  type: "array",
+                  items: {
+                    $ref: "#/components/schemas/PropertyReview",
+                  },
+                },
+              },
+            },
+          ],
+        },
+        PropertyResponse: {
+          type: "object",
+          properties: {
+            statusCode: { type: "integer", example: 200 },
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Property retrieved successfully" },
+            data: {
+              $ref: "#/components/schemas/Property",
+            },
+          },
+        },
+        PropertyDetailsResponse: {
+          type: "object",
+          properties: {
+            statusCode: { type: "integer", example: 200 },
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Property retrieved successfully" },
+            data: {
+              $ref: "#/components/schemas/PropertyDetails",
+            },
+          },
+        },
+        PropertiesResponse: {
+          type: "object",
+          properties: {
+            statusCode: { type: "integer", example: 200 },
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Properties retrieved successfully" },
+            meta: {
+              type: "object",
+              properties: {
+                page: { type: "integer", example: 1 },
+                limit: { type: "integer", example: 10 },
+                total: { type: "integer", example: 42 },
+              },
+            },
+            data: {
+              type: "array",
+              items: {
+                $ref: "#/components/schemas/Property",
+              },
+            },
+          },
+        },
+        PropertyDeleteResponse: {
+          type: "object",
+          properties: {
+            statusCode: { type: "integer", example: 200 },
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Property deleted successfully" },
           },
         },
       },
