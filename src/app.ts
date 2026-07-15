@@ -23,7 +23,7 @@ app.use("/api/v1", router);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(globalErrorHandler)
 
-app.get("/", (_req: Request, res: Response) => {
+app.get("/", (req: Request, res: Response) => {
   res.send("Hello world");
 });
 
