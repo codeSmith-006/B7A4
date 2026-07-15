@@ -19,6 +19,10 @@ const options: swaggerJSDoc.Options = {
         name: "Auth",
         description: "Authentication endpoints",
       },
+      {
+        name: "Category",
+        description: "Category endpoints",
+      },
     ],
     components: {
       securitySchemes: {
@@ -131,6 +135,57 @@ const options: swaggerJSDoc.Options = {
                 },
                 status: { type: "string", example: "ACTIVE" },
                 createdAt: { type: "string", format: "date-time" },
+              },
+            },
+          },
+        },
+        CategoryPayload: {
+          type: "object",
+          required: ["name"],
+          properties: {
+            name: { type: "string", example: "Apartment" },
+            description: {
+              type: "string",
+              example: "Residential apartment listings",
+            },
+          },
+        },
+        Category: {
+          type: "object",
+          properties: {
+            id: { type: "string", example: "cuid_or_uuid" },
+            name: { type: "string", example: "Apartment" },
+            slug: { type: "string", example: "apartment" },
+            description: {
+              type: "string",
+              example: "Residential apartment listings",
+              nullable: true,
+            },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        CategoryResponse: {
+          type: "object",
+          properties: {
+            statusCode: { type: "integer", example: 201 },
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Category created successfully" },
+            data: {
+              $ref: "#/components/schemas/Category",
+            },
+          },
+        },
+        CategoriesResponse: {
+          type: "object",
+          properties: {
+            statusCode: { type: "integer", example: 200 },
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Categories retrieved successfully" },
+            data: {
+              type: "array",
+              items: {
+                $ref: "#/components/schemas/Category",
               },
             },
           },
