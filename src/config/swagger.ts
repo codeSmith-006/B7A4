@@ -23,6 +23,10 @@ const options: swaggerJSDoc.Options = {
         name: "Category",
         description: "Category endpoints",
       },
+      {
+        name: "Rental",
+        description: "Rental request endpoints",
+      },
     ],
     components: {
       securitySchemes: {
@@ -186,6 +190,169 @@ const options: swaggerJSDoc.Options = {
               type: "array",
               items: {
                 $ref: "#/components/schemas/Category",
+              },
+            },
+          },
+        },
+        RentalRequestPayload: {
+          type: "object",
+          required: ["propertyId", "moveInDate", "durationMonths"],
+          properties: {
+            propertyId: { type: "string", example: "property_uuid" },
+            moveInDate: { type: "string", format: "date-time", example: "2026-08-01T00:00:00.000Z" },
+            durationMonths: { type: "integer", example: 12 },
+            message: {
+              type: "string",
+              example: "I would like to schedule a visit before moving in.",
+            },
+          },
+        },
+        RentalStatusPayload: {
+          type: "object",
+          required: ["status"],
+          properties: {
+            status: {
+              type: "string",
+              enum: ["APPROVED", "REJECTED"],
+              example: "APPROVED",
+            },
+          },
+        },
+        RentalUserSummary: {
+          type: "object",
+          properties: {
+            id: { type: "string", example: "user_uuid" },
+            name: { type: "string", example: "Ryan Rehan" },
+            email: { type: "string", format: "email", example: "ryan@example.com" },
+            phone: { type: "string", example: "+8801700000000", nullable: true },
+          },
+        },
+        RentalProperty: {
+          type: "object",
+          properties: {
+            id: { type: "string", example: "property_uuid" },
+            title: { type: "string", example: "Modern city apartment" },
+            description: { type: "string", example: "A bright apartment near public transport." },
+            address: { type: "string", example: "123 Lake Road" },
+            city: { type: "string", example: "Dhaka" },
+            area: { type: "string", example: "Gulshan", nullable: true },
+            rent: { type: "string", example: "1200.00" },
+            bedrooms: { type: "integer", example: 2 },
+            bathrooms: { type: "integer", example: 2 },
+            size: { type: "integer", example: 950, nullable: true },
+            amenities: {
+              type: "array",
+              items: { type: "string" },
+              example: ["WiFi", "Parking", "Elevator"],
+            },
+            images: {
+              type: "array",
+              items: { type: "string" },
+              example: ["https://example.com/property.jpg"],
+            },
+            status: {
+              type: "string",
+              enum: ["AVAILABLE", "UNAVAILABLE"],
+              example: "AVAILABLE",
+            },
+            landlordId: { type: "string", example: "landlord_uuid" },
+            categoryId: { type: "string", example: "category_uuid" },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+            category: {
+              $ref: "#/components/schemas/Category",
+            },
+            landlord: {
+              $ref: "#/components/schemas/RentalUserSummary",
+            },
+          },
+        },
+        RentalPayment: {
+          type: "object",
+          nullable: true,
+          properties: {
+            id: { type: "string", example: "payment_uuid" },
+            rentalRequestId: { type: "string", example: "rental_uuid" },
+            userId: { type: "string", example: "tenant_uuid" },
+            amount: { type: "string", example: "1200.00" },
+            provider: { type: "string", enum: ["STRIPE"], example: "STRIPE" },
+            status: { type: "string", enum: ["PENDING", "SUCCEEDED", "FAILED"], example: "PENDING" },
+            currency: { type: "string", example: "usd" },
+            transactionId: { type: "string", example: "txn_123", nullable: true },
+            paymentIntentId: { type: "string", example: "pi_123", nullable: true },
+            clientSecret: { type: "string", example: "pi_123_secret_456", nullable: true },
+            paidAt: { type: "string", format: "date-time", nullable: true },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        RentalReview: {
+          type: "object",
+          nullable: true,
+          properties: {
+            id: { type: "string", example: "review_uuid" },
+            rating: { type: "integer", example: 5 },
+            comment: { type: "string", example: "Great property and responsive landlord." },
+            propertyId: { type: "string", example: "property_uuid" },
+            tenantId: { type: "string", example: "tenant_uuid" },
+            rentalRequestId: { type: "string", example: "rental_uuid" },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        RentalRequest: {
+          type: "object",
+          properties: {
+            id: { type: "string", example: "rental_uuid" },
+            moveInDate: { type: "string", format: "date-time" },
+            durationMonths: { type: "integer", example: 12 },
+            message: {
+              type: "string",
+              example: "I would like to schedule a visit before moving in.",
+              nullable: true,
+            },
+            monthlyRent: { type: "string", example: "1200.00" },
+            status: {
+              type: "string",
+              enum: ["PENDING", "APPROVED", "REJECTED", "PAID", "ACTIVE"],
+              example: "PENDING",
+            },
+            createdAt: { type: "string", format: "date-time" },
+            property: {
+              $ref: "#/components/schemas/RentalProperty",
+            },
+            tenant: {
+              $ref: "#/components/schemas/RentalUserSummary",
+            },
+            payment: {
+              $ref: "#/components/schemas/RentalPayment",
+            },
+            review: {
+              $ref: "#/components/schemas/RentalReview",
+            },
+          },
+        },
+        RentalRequestResponse: {
+          type: "object",
+          properties: {
+            statusCode: { type: "integer", example: 200 },
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Rental request retrieved successfully" },
+            data: {
+              $ref: "#/components/schemas/RentalRequest",
+            },
+          },
+        },
+        RentalRequestsResponse: {
+          type: "object",
+          properties: {
+            statusCode: { type: "integer", example: 200 },
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Rental requests retrieved successfully" },
+            data: {
+              type: "array",
+              items: {
+                $ref: "#/components/schemas/RentalRequest",
               },
             },
           },
