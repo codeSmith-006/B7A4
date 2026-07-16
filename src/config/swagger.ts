@@ -35,6 +35,10 @@ const options: swaggerJSDoc.Options = {
         name: "Review",
         description: "Review endpoints",
       },
+      {
+        name: "Admin",
+        description: "Admin endpoints",
+      },
     ],
     components: {
       securitySchemes: {
@@ -586,6 +590,154 @@ const options: swaggerJSDoc.Options = {
             statusCode: { type: "integer", example: 200 },
             success: { type: "boolean", example: true },
             message: { type: "string", example: "Property deleted successfully" },
+          },
+        },
+        AdminUser: {
+          type: "object",
+          properties: {
+            id: { type: "string", example: "user_uuid" },
+            name: { type: "string", example: "Ryan Rehan" },
+            email: { type: "string", format: "email", example: "ryan@example.com" },
+            phone: { type: "string", example: "+8801700000000", nullable: true },
+            role: { type: "string", enum: ["ADMIN", "LANDLORD", "TENANT"], example: "TENANT" },
+            status: { type: "string", enum: ["ACTIVE", "BLOCKED"], example: "ACTIVE" },
+            createdAt: { type: "string", format: "date-time" },
+            _count: {
+              type: "object",
+              properties: {
+                properties: { type: "integer", example: 2 },
+                rentalRequests: { type: "integer", example: 3 },
+                reviews: { type: "integer", example: 1 },
+              },
+            },
+          },
+        },
+        AdminUsersResponse: {
+          type: "object",
+          properties: {
+            statusCode: { type: "integer", example: 200 },
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Users retrieved successfully" },
+            data: {
+              type: "array",
+              items: { $ref: "#/components/schemas/AdminUser" },
+            },
+          },
+        },
+        UpdateUserStatusPayload: {
+          type: "object",
+          required: ["status"],
+          properties: {
+            status: {
+              type: "string",
+              enum: ["ACTIVE", "BLOCKED"],
+              example: "BLOCKED",
+            },
+          },
+        },
+        AdminUpdatedUser: {
+          type: "object",
+          properties: {
+            id: { type: "string", example: "user_uuid" },
+            name: { type: "string", example: "Ryan Rehan" },
+            email: { type: "string", format: "email", example: "ryan@example.com" },
+            role: { type: "string", example: "TENANT" },
+            status: { type: "string", example: "BLOCKED" },
+          },
+        },
+        AdminUpdateUserStatusResponse: {
+          type: "object",
+          properties: {
+            statusCode: { type: "integer", example: 200 },
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "User status updated successfully" },
+            data: { $ref: "#/components/schemas/AdminUpdatedUser" },
+          },
+        },
+        AdminProperty: {
+          type: "object",
+          properties: {
+            id: { type: "string", example: "property_uuid" },
+            title: { type: "string", example: "Modern city apartment" },
+            description: { type: "string", example: "A bright apartment near public transport." },
+            address: { type: "string", example: "123 Lake Road" },
+            city: { type: "string", example: "Dhaka" },
+            area: { type: "string", example: "Gulshan", nullable: true },
+            rent: { type: "string", example: "1200.00" },
+            bedrooms: { type: "integer", example: 2 },
+            bathrooms: { type: "integer", example: 2 },
+            size: { type: "integer", example: 950, nullable: true },
+            amenities: { type: "array", items: { type: "string" }, example: ["WiFi", "Parking", "Elevator"] },
+            images: { type: "array", items: { type: "string" }, example: ["https://example.com/property.jpg"] },
+            status: { type: "string", enum: ["AVAILABLE", "UNAVAILABLE"], example: "AVAILABLE" },
+            landlordId: { type: "string", example: "landlord_uuid" },
+            categoryId: { type: "string", example: "category_uuid" },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+            landlord: {
+              type: "object",
+              properties: {
+                id: { type: "string", example: "landlord_uuid" },
+                name: { type: "string", example: "John Doe" },
+                email: { type: "string", format: "email", example: "john@example.com" },
+              },
+            },
+            category: { $ref: "#/components/schemas/Category" },
+            _count: {
+              type: "object",
+              properties: {
+                rentalRequests: { type: "integer", example: 5 },
+                reviews: { type: "integer", example: 3 },
+              },
+            },
+          },
+        },
+        AdminPropertiesResponse: {
+          type: "object",
+          properties: {
+            statusCode: { type: "integer", example: 200 },
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Properties retrieved successfully" },
+            data: {
+              type: "array",
+              items: { $ref: "#/components/schemas/AdminProperty" },
+            },
+          },
+        },
+        AdminRental: {
+          type: "object",
+          properties: {
+            id: { type: "string", example: "rental_uuid" },
+            moveInDate: { type: "string", format: "date-time" },
+            durationMonths: { type: "integer", example: 12 },
+            message: { type: "string", example: "I would like to schedule a visit.", nullable: true },
+            monthlyRent: { type: "string", example: "1200.00" },
+            status: { type: "string", enum: ["PENDING", "APPROVED", "REJECTED", "PAID", "ACTIVE"], example: "ACTIVE" },
+            reviewedAt: { type: "string", format: "date-time", nullable: true },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+            property: { $ref: "#/components/schemas/RentalProperty" },
+            tenant: {
+              type: "object",
+              properties: {
+                id: { type: "string", example: "tenant_uuid" },
+                name: { type: "string", example: "Ryan Rehan" },
+                email: { type: "string", format: "email", example: "ryan@example.com" },
+              },
+            },
+            payment: { $ref: "#/components/schemas/RentalPayment", nullable: true },
+          },
+        },
+        AdminRentalsResponse: {
+          type: "object",
+          properties: {
+            statusCode: { type: "integer", example: 200 },
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Rentals retrieved successfully" },
+            data: {
+              type: "array",
+              items: { $ref: "#/components/schemas/AdminRental" },
+            },
           },
         },
       },
