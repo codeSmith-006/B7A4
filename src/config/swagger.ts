@@ -31,6 +31,10 @@ const options: swaggerJSDoc.Options = {
         name: "Property",
         description: "Property listing endpoints",
       },
+      {
+        name: "Review",
+        description: "Review endpoints",
+      },
     ],
     components: {
       securitySchemes: {
@@ -302,6 +306,35 @@ const options: swaggerJSDoc.Options = {
             rentalRequestId: { type: "string", example: "rental_uuid" },
             createdAt: { type: "string", format: "date-time" },
             updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        ReviewPayload: {
+          type: "object",
+          required: ["rentalRequestId", "rating", "comment"],
+          properties: {
+            rentalRequestId: { type: "string", example: "rental_uuid" },
+            rating: { type: "integer", example: 5 },
+            comment: { type: "string", example: "Great property and responsive landlord." },
+          },
+        },
+        Review: {
+          type: "object",
+          properties: {
+            id: { type: "string", example: "review_uuid" },
+            rating: { type: "integer", example: 5 },
+            comment: { type: "string", example: "Great property and responsive landlord." },
+            propertyId: { type: "string", example: "property_uuid" },
+            tenantId: { type: "string", example: "tenant_uuid" },
+            rentalRequestId: { type: "string", example: "rental_uuid" },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+            tenant: {
+              type: "object",
+              properties: {
+                id: { type: "string", example: "tenant_uuid" },
+                name: { type: "string", example: "Ryan Rehan" },
+              },
+            },
           },
         },
         RentalRequest: {
