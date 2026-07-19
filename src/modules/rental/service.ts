@@ -2,6 +2,8 @@ import httpStatus from "http-status";
 import { Prisma, RentalRequestStatus } from "../../../generated/prisma/client";
 import { prisma } from "../../lib/prisma";
 import { ApiError } from "../../utils/ApiError";
+import { getPagination } from "../../utils/pagination";
+import { buildRentalFilters, buildRentalOrderBy } from "../../utils/queryBuilder";
 import { RentalRequestPayload, RentalStatusPayload } from "./interface";
 
 const rentalSelection = {
@@ -65,24 +67,37 @@ const createRentalRequest = async (tenantId: string, payload: RentalRequestPaylo
   });
 };
 
-const getMyRentalRequests = async (userId: string, role: string) => {
-  if (role === "LANDLORD") {
-    return prisma.rentalRequest.findMany({
-      where: {
-        property: {
-          landlordId: userId,
-        },
-      },
-      orderBy: { createdAt: "desc" },
-      select: rentalSelection,
-    });
-  }
+const getMyRentalRequests = async (userId: string, role: string, query: Record<string, unknown>) => {
+  const { page, limit, skip } = getPagination(query);
+  const queryWhere = buildRentalFilters(query);
+  const orderBy = buildRentalOrderBy(query);
+  const scopeWhere: Prisma.RentalRequestWhereInput =
+    role === "LANDLORD"
+      ? {
+          property: {
+            landlordId: userId,
+          },
+        }
+      : { tenantId: userId };
+  const where: Prisma.RentalRequestWhereInput = Object.keys(queryWhere).length
+    ? { AND: [scopeWhere, queryWhere] }
+    : scopeWhere;
 
-  return prisma.rentalRequest.findMany({
-    where: { tenantId: userId },
-    orderBy: { createdAt: "desc" },
-    select: rentalSelection,
-  });
+  const [data, total] = await Promise.all([
+    prisma.rentalRequest.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy,
+      select: rentalSelection,
+    }),
+    prisma.rentalRequest.count({ where }),
+  ]);
+
+  return {
+    meta: { page, limit, total },
+    data,
+  };
 };
 
 const getRentalRequestById = async (userId: string, role: string, id: string) => {

@@ -4,14 +4,15 @@ import { sendResponse } from "../../utils/sendResponse";
 import { adminService } from "./service";
 import { catchAsync } from "../../utils/catchAsnyc";
 
-const getUsers = catchAsync(async (_req: Request, res: Response) => {
-  const result = await adminService.getUsers();
+const getUsers = catchAsync(async (req: Request, res: Response) => {
+  const result = await adminService.getUsers(req.query as Record<string, unknown>);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Users retrieved successfully",
-    data: result,
+    data: result.data,
+    meta: result.meta,
   });
 });
 
@@ -26,25 +27,27 @@ const updateUserStatus = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getProperties = catchAsync(async (_req: Request, res: Response) => {
-  const result = await adminService.getProperties();
+const getProperties = catchAsync(async (req: Request, res: Response) => {
+  const result = await adminService.getProperties(req.query as Record<string, unknown>);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Properties retrieved successfully",
-    data: result,
+    data: result.data,
+    meta: result.meta,
   });
 });
 
-const getRentals = catchAsync(async (_req: Request, res: Response) => {
-  const result = await adminService.getRentals();
+const getRentals = catchAsync(async (req: Request, res: Response) => {
+  const result = await adminService.getRentals(req.query as Record<string, unknown>);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Rentals retrieved successfully",
-    data: result,
+    data: result.data,
+    meta: result.meta,
   });
 });
 

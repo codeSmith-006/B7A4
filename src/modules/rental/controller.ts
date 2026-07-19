@@ -16,13 +16,18 @@ const createRentalRequest = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getMyRentalRequests = catchAsync(async (req: Request, res: Response) => {
-  const result = await rentalService.getMyRentalRequests(req.user!.userId, req.user!.role);
+  const result = await rentalService.getMyRentalRequests(
+    req.user!.userId,
+    req.user!.role,
+    req.query as Record<string, unknown>,
+  );
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Rental requests retrieved successfully",
-    data: result,
+    data: result.data,
+    meta: result.meta,
   });
 });
 

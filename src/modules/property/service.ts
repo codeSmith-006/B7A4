@@ -3,7 +3,7 @@ import { Prisma, PropertyStatus } from "../../../generated/prisma/client";
 import { prisma } from "../../lib/prisma";
 import { ApiError } from "../../utils/ApiError";
 import { getPagination } from "../../utils/pagination";
-import { buildPropertyFilters } from "../../utils/queryBuilder";
+import { buildPropertyFilters, buildPropertyOrderBy } from "../../utils/queryBuilder";
 import { PropertyPayload } from "./interface";
 
 const propertySelection = {
@@ -58,13 +58,14 @@ const createProperty = async (userId: string, payload: PropertyPayload) => {
 const getProperties = async (query: Record<string, unknown>) => {
   const { page, limit, skip } = getPagination(query);
   const where = buildPropertyFilters(query);
+  const orderBy = buildPropertyOrderBy(query);
 
   const [data, total] = await Promise.all([
     prisma.property.findMany({
       where,
       skip,
       take: limit,
-      orderBy: { createdAt: "desc" },
+      orderBy,
       select: propertySelection,
     }),
     prisma.property.count({ where }),
