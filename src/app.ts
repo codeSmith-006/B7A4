@@ -9,6 +9,9 @@ import router from "./modules/route.js";
 import { globalErrorHandler } from "./middleware/errorHandler.js";
 
 const app: Application = express();
+const swaggerHtml = swaggerUi
+  .generateHTML(swaggerSpec)
+  .replaceAll("./", "/api-docs/");
 
 app.use(
   cors({
@@ -20,10 +23,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use("/api/v1", router);
-app.get("/api-docs", (_req: Request, res: Response) => {
-  res.redirect(301, "/api-docs/");
+app.use("/api-docs", swaggerUi.serveWithOptions({ redirect: false }));
+app.get(["/api-docs", "/api-docs/"], (_req: Request, res: Response) => {
+  res.send(swaggerHtml);
 });
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(globalErrorHandler)
 
 app.get("/", (req: Request, res: Response) => {
