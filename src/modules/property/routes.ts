@@ -30,12 +30,31 @@ const router = Router();
  *         schema:
  *           type: string
  *           example: apartment
- *         description: Search text for matching property fields
+ *         description: Partial, case-insensitive search on title or description
+ *       - in: query
+ *         name: title
+ *         schema:
+ *           type: string
+ *           example: Modern city apartment
+ *         description: Exact match filter by title
+ *       - in: query
+ *         name: description
+ *         schema:
+ *           type: string
+ *           example: A bright apartment near public transport.
+ *         description: Exact match filter by description
  *       - in: query
  *         name: city
  *         schema:
  *           type: string
  *           example: Dhaka
+ *         description: Exact match filter by city
+ *       - in: query
+ *         name: area
+ *         schema:
+ *           type: string
+ *           example: Gulshan
+ *         description: Exact match filter by area
  *       - in: query
  *         name: categoryId
  *         schema:
@@ -67,6 +86,18 @@ const router = Router();
  *           type: string
  *           enum: [AVAILABLE, UNAVAILABLE]
  *           example: AVAILABLE
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, updatedAt, rent, bedrooms, bathrooms, title]
+ *           example: createdAt
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           example: desc
  *     responses:
  *       200:
  *         description: Properties retrieved successfully

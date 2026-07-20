@@ -57,6 +57,66 @@ router.post("/", auth(UserRole.TENANT), rentalController.createRentalRequest);
  *     description: Tenants receive their own rental requests. Landlords receive requests for their properties. Admins can access the endpoint, but the current service returns requests for the authenticated user id.
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           example: 10
+ *       - in: query
+ *         name: searchTerm
+ *         schema:
+ *           type: string
+ *           example: visit
+ *         description: Partial, case-insensitive search on rental message
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [PENDING, APPROVED, REJECTED, PAID, ACTIVE]
+ *           example: PENDING
+ *       - in: query
+ *         name: propertyId
+ *         schema:
+ *           type: string
+ *           example: property_uuid
+ *       - in: query
+ *         name: tenantId
+ *         schema:
+ *           type: string
+ *           example: tenant_uuid
+ *       - in: query
+ *         name: minMonthlyRent
+ *         schema:
+ *           type: number
+ *           example: 500
+ *       - in: query
+ *         name: maxMonthlyRent
+ *         schema:
+ *           type: number
+ *           example: 2000
+ *       - in: query
+ *         name: durationMonths
+ *         schema:
+ *           type: integer
+ *           example: 12
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, updatedAt, moveInDate, durationMonths, monthlyRent, status]
+ *           example: createdAt
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           example: desc
  *     responses:
  *       200:
  *         description: Rental requests retrieved successfully

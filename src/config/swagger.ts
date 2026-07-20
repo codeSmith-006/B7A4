@@ -49,6 +49,14 @@ const options: swaggerJSDoc.Options = {
         },
       },
       schemas: {
+        PaginationMeta: {
+          type: "object",
+          properties: {
+            page: { type: "integer", example: 1 },
+            limit: { type: "integer", example: 10 },
+            total: { type: "integer", example: 42 },
+          },
+        },
         RegisterPayload: {
           type: "object",
           required: ["name", "email", "password", "role"],
@@ -198,6 +206,9 @@ const options: swaggerJSDoc.Options = {
             statusCode: { type: "integer", example: 200 },
             success: { type: "boolean", example: true },
             message: { type: "string", example: "Categories retrieved successfully" },
+            meta: {
+              $ref: "#/components/schemas/PaginationMeta",
+            },
             data: {
               type: "array",
               items: {
@@ -390,6 +401,9 @@ const options: swaggerJSDoc.Options = {
             statusCode: { type: "integer", example: 200 },
             success: { type: "boolean", example: true },
             message: { type: "string", example: "Rental requests retrieved successfully" },
+            meta: {
+              $ref: "#/components/schemas/PaginationMeta",
+            },
             data: {
               type: "array",
               items: {
@@ -618,6 +632,9 @@ const options: swaggerJSDoc.Options = {
             statusCode: { type: "integer", example: 200 },
             success: { type: "boolean", example: true },
             message: { type: "string", example: "Users retrieved successfully" },
+            meta: {
+              $ref: "#/components/schemas/PaginationMeta",
+            },
             data: {
               type: "array",
               items: { $ref: "#/components/schemas/AdminUser" },
@@ -698,6 +715,9 @@ const options: swaggerJSDoc.Options = {
             statusCode: { type: "integer", example: 200 },
             success: { type: "boolean", example: true },
             message: { type: "string", example: "Properties retrieved successfully" },
+            meta: {
+              $ref: "#/components/schemas/PaginationMeta",
+            },
             data: {
               type: "array",
               items: { $ref: "#/components/schemas/AdminProperty" },
@@ -734,6 +754,9 @@ const options: swaggerJSDoc.Options = {
             statusCode: { type: "integer", example: 200 },
             success: { type: "boolean", example: true },
             message: { type: "string", example: "Rentals retrieved successfully" },
+            meta: {
+              $ref: "#/components/schemas/PaginationMeta",
+            },
             data: {
               type: "array",
               items: { $ref: "#/components/schemas/AdminRental" },
