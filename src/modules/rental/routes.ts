@@ -62,61 +62,58 @@ router.post("/", auth(UserRole.TENANT), rentalController.createRentalRequest);
  *         name: page
  *         schema:
  *           type: integer
- *           example: 1
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
- *           example: 10
  *       - in: query
  *         name: searchTerm
  *         schema:
  *           type: string
- *           example: visit
- *         description: Partial, case-insensitive search on rental message
+ *         description: Optional. Applies partial, case-insensitive search on rental message only when provided.
  *       - in: query
  *         name: status
  *         schema:
  *           type: string
  *           enum: [PENDING, APPROVED, REJECTED, PAID, ACTIVE]
- *           example: PENDING
+ *         description: Optional. Filter by rental request status.
  *       - in: query
  *         name: propertyId
  *         schema:
  *           type: string
- *           example: property_uuid
+ *         description: Optional. Filter by property id.
  *       - in: query
  *         name: tenantId
  *         schema:
  *           type: string
- *           example: tenant_uuid
+ *         description: Optional. Filter by tenant id.
  *       - in: query
  *         name: minMonthlyRent
  *         schema:
  *           type: number
- *           example: 500
+ *         description: Optional. Minimum monthly rent filter.
  *       - in: query
  *         name: maxMonthlyRent
  *         schema:
  *           type: number
- *           example: 2000
+ *         description: Optional. Maximum monthly rent filter.
  *       - in: query
  *         name: durationMonths
  *         schema:
  *           type: integer
- *           example: 12
+ *         description: Optional. Filter by rental duration in months.
  *       - in: query
  *         name: sortBy
  *         schema:
  *           type: string
- *           enum: [createdAt, updatedAt, moveInDate, durationMonths, monthlyRent, status]
- *           example: createdAt
+ *           enum: [createdAt, monthlyRent]
+ *         description: Optional. Sorting is applied only when sortBy is provided.
  *       - in: query
  *         name: sortOrder
  *         schema:
  *           type: string
  *           enum: [asc, desc]
- *           example: desc
+ *         description: Optional. Used only with sortBy.
  *     responses:
  *       200:
  *         description: Rental requests retrieved successfully

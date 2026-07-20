@@ -18,6 +18,7 @@ model Payment {
   currency          String          @default("usd")
   transactionId     String?         @unique
   paymentIntentId   String?         @unique
+  checkoutSessionId String?         @unique
   clientSecret      String?
   paidAt            DateTime?
   createdAt         DateTime        @default(now())

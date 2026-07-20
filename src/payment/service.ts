@@ -1,9 +1,11 @@
 import httpStatus from "http-status";
-import { PaymentStatus, Prisma, RentalRequestStatus } from "../../../generated/prisma/client";
-import { stripe } from "../../lib/stripe";
-import { prisma } from "../../lib/prisma";
-import { ApiError } from "../../utils/ApiError";
-import { ConfirmPaymentPayload, PaymentIntentPayload } from "./interface";
+import Stripe from "stripe";
+import { PaymentStatus, Prisma, RentalRequestStatus } from "../../generated/prisma/client";
+import { stripe } from "../lib/stripe";
+import { prisma } from "../lib/prisma";
+import { ApiError } from "../utils/ApiError";
+import config from "../config/index";
+import { ConfirmPaymentPayload, PaymentIntentPayload, StripeWebhookPayload } from "./interface";
 
 const paymentSelection = {
   id: true,
@@ -13,6 +15,7 @@ const paymentSelection = {
   status: true,
   transactionId: true,
   paymentIntentId: true,
+  checkoutSessionId: true,
   paidAt: true,
   createdAt: true,
   rentalRequest: {
@@ -22,14 +25,103 @@ const paymentSelection = {
   },
 } satisfies Prisma.PaymentSelect;
 
-const createPaymentIntent = async (userId: string, payload: PaymentIntentPayload) => {
+const getStripeClient = () => {
   if (!stripe) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Stripe is not configured");
   }
 
+  return stripe;
+};
+
+const getPaymentIntentId = (paymentIntent: string | Stripe.PaymentIntent | null) => {
+  if (!paymentIntent) return null;
+
+  return typeof paymentIntent === "string" ? paymentIntent : paymentIntent.id;
+};
+
+const getLatestChargeId = async (stripeClient: Stripe, paymentIntentId: string | null) => {
+  if (!paymentIntentId) return null;
+
+  const intent = await stripeClient.paymentIntents.retrieve(paymentIntentId);
+
+  return intent.latest_charge ? String(intent.latest_charge) : null;
+};
+
+const markPaymentSucceeded = async (
+  paymentId: string,
+  paymentIntentId: string | null,
+  transactionId: string | null,
+  checkoutSessionId?: string,
+) => {
+  const updatedPayment = await prisma.payment.update({
+    where: { id: paymentId },
+    data: {
+      status: PaymentStatus.SUCCEEDED,
+      paymentIntentId,
+      ...(checkoutSessionId ? { checkoutSessionId } : {}),
+      transactionId,
+      paidAt: new Date(),
+    },
+    select: paymentSelection,
+  });
+
+  await prisma.rentalRequest.update({
+    where: { id: updatedPayment.rentalRequest.id },
+    data: { status: RentalRequestStatus.PAID },
+  });
+
+  return updatedPayment;
+};
+
+const findOrCreatePaymentForSession = async (session: Stripe.Checkout.Session, paymentIntentId: string | null) => {
+  const existingPayment = await prisma.payment.findFirst({
+    where: {
+      OR: [
+        { checkoutSessionId: session.id },
+        ...(session.metadata?.rentalRequestId ? [{ rentalRequestId: session.metadata.rentalRequestId }] : []),
+      ],
+    },
+  });
+
+  if (existingPayment) {
+    return existingPayment;
+  }
+
+  const rentalRequestId = session.metadata?.rentalRequestId;
+  const tenantId = session.metadata?.tenantId;
+
+  if (!rentalRequestId || !tenantId) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Stripe checkout metadata is missing");
+  }
+
+  const rentalRequest = await prisma.rentalRequest.findUnique({
+    where: { id: rentalRequestId },
+  });
+
+  if (!rentalRequest) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Rental request not found");
+  }
+
+  return prisma.payment.create({
+    data: {
+      rentalRequestId,
+      userId: tenantId,
+      amount: session.amount_total ? session.amount_total / 100 : rentalRequest.monthlyRent,
+      currency: session.currency ?? "usd",
+      paymentIntentId,
+      checkoutSessionId: session.id,
+      clientSecret: null,
+      status: PaymentStatus.PENDING,
+    },
+  });
+};
+
+const createPaymentIntent = async (userId: string, payload: PaymentIntentPayload) => {
+  const stripeClient = getStripeClient();
+
   const rentalRequest = await prisma.rentalRequest.findUnique({
     where: { id: payload.rentalRequestId },
-    include: { payment: true, property: true },
+    include: { payment: true, property: true, tenant: true },
   });
 
   if (!rentalRequest || rentalRequest.tenantId !== userId) {
@@ -42,24 +134,52 @@ const createPaymentIntent = async (userId: string, payload: PaymentIntentPayload
 
   const amount = Number(rentalRequest.monthlyRent);
 
-  const intent = await stripe.paymentIntents.create({
-    amount: Math.round(amount * 100),
-    currency: "usd",
-    automatic_payment_methods: { enabled: true },
+  const session = await stripeClient.checkout.sessions.create({
+    mode: "payment",
+    success_url: config.stripeCheckoutSuccessUrl,
+    cancel_url: config.stripeCancelUrl,
+    customer_email: rentalRequest.tenant.email,
+    line_items: [
+      {
+        quantity: 1,
+        price_data: {
+          currency: "usd",
+          unit_amount: Math.round(amount * 100),
+          product_data: {
+            name: rentalRequest.property.title,
+            description: rentalRequest.property.address,
+          },
+        },
+      },
+    ],
     metadata: {
       rentalRequestId: rentalRequest.id,
       tenantId: userId,
       propertyId: rentalRequest.propertyId,
     },
+    payment_intent_data: {
+      metadata: {
+        rentalRequestId: rentalRequest.id,
+        tenantId: userId,
+        propertyId: rentalRequest.propertyId,
+      },
+    },
   });
+
+  if (!session.url) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Stripe checkout URL could not be created");
+  }
+
+  const paymentIntentId = getPaymentIntentId(session.payment_intent);
 
   const payment = rentalRequest.payment
     ? await prisma.payment.update({
         where: { id: rentalRequest.payment.id },
         data: {
           amount: rentalRequest.monthlyRent,
-          paymentIntentId: intent.id,
-          clientSecret: intent.client_secret,
+          paymentIntentId,
+          checkoutSessionId: session.id,
+          clientSecret: null,
           status: PaymentStatus.PENDING,
         },
         select: paymentSelection,
@@ -69,24 +189,23 @@ const createPaymentIntent = async (userId: string, payload: PaymentIntentPayload
           rentalRequestId: rentalRequest.id,
           userId,
           amount: rentalRequest.monthlyRent,
-          paymentIntentId: intent.id,
-          clientSecret: intent.client_secret,
+          paymentIntentId,
+          checkoutSessionId: session.id,
+          clientSecret: null,
         },
         select: paymentSelection,
       });
 
   return {
     ...payment,
-    clientSecret: intent.client_secret,
+    checkoutUrl: session.url,
   };
 };
 
 const confirmPayment = async (payload: ConfirmPaymentPayload) => {
-  if (!stripe) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Stripe is not configured");
-  }
+  const stripeClient = getStripeClient();
 
-  const intent = await stripe.paymentIntents.retrieve(payload.paymentIntentId);
+  const intent = await stripeClient.paymentIntents.retrieve(payload.paymentIntentId);
 
   const payment = await prisma.payment.findUnique({
     where: { paymentIntentId: payload.paymentIntentId },
@@ -97,25 +216,95 @@ const confirmPayment = async (payload: ConfirmPaymentPayload) => {
   }
 
   const isSuccess = intent.status === "succeeded";
+  const transactionId = intent.latest_charge ? String(intent.latest_charge) : payment.transactionId;
 
-  const updatedPayment = await prisma.payment.update({
+  if (isSuccess) {
+    return markPaymentSucceeded(payment.id, intent.id, transactionId);
+  }
+
+  return prisma.payment.update({
     where: { id: payment.id },
     data: {
-      status: isSuccess ? PaymentStatus.SUCCEEDED : PaymentStatus.FAILED,
-      transactionId: intent.latest_charge ? String(intent.latest_charge) : payment.transactionId,
-      paidAt: isSuccess ? new Date() : null,
+      status: PaymentStatus.FAILED,
+      transactionId,
+      paidAt: null,
     },
     select: paymentSelection,
   });
+};
 
-  if (isSuccess) {
-    await prisma.rentalRequest.update({
-      where: { id: payment.rentalRequestId },
-      data: { status: RentalRequestStatus.PAID },
+const confirmCheckoutSession = async (sessionId: string) => {
+  const stripeClient = getStripeClient();
+  const session = await stripeClient.checkout.sessions.retrieve(sessionId);
+  const paymentIntentId = getPaymentIntentId(session.payment_intent);
+  const payment = await findOrCreatePaymentForSession(session, paymentIntentId);
+
+  if (session.payment_status === "paid") {
+    const transactionId = await getLatestChargeId(stripeClient, paymentIntentId);
+    return markPaymentSucceeded(payment.id, paymentIntentId, transactionId, session.id);
+  }
+
+  if (session.status === "expired") {
+    return prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        status: PaymentStatus.FAILED,
+        paymentIntentId,
+        checkoutSessionId: session.id,
+        paidAt: null,
+      },
+      select: paymentSelection,
     });
   }
 
-  return updatedPayment;
+  return payment;
+};
+
+const handleStripeWebhook = async (payload: StripeWebhookPayload, signatureHeader: string | string[] | undefined) => {
+  const stripeClient = getStripeClient();
+
+  if (!config.stripeWebhookSecret) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Stripe webhook secret is not configured");
+  }
+
+  const signature = Array.isArray(signatureHeader) ? signatureHeader[0] : signatureHeader;
+
+  if (!signature) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Stripe signature is missing");
+  }
+
+  const event = stripeClient.webhooks.constructEvent(payload, signature, config.stripeWebhookSecret);
+
+  if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
+    const session = event.data.object as Stripe.Checkout.Session;
+    const paymentIntentId = getPaymentIntentId(session.payment_intent);
+    if (session.payment_status === "paid") {
+      const payment = await findOrCreatePaymentForSession(session, paymentIntentId);
+      const transactionId = await getLatestChargeId(stripeClient, paymentIntentId);
+      await markPaymentSucceeded(payment.id, paymentIntentId, transactionId, session.id);
+    }
+  }
+
+  if (event.type === "checkout.session.async_payment_failed" || event.type === "checkout.session.expired") {
+    const session = event.data.object as Stripe.Checkout.Session;
+    const paymentIntentId = getPaymentIntentId(session.payment_intent);
+    const payment = await prisma.payment.findUnique({
+      where: { checkoutSessionId: session.id },
+    });
+
+    if (payment) {
+      await prisma.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: PaymentStatus.FAILED,
+          paymentIntentId,
+          paidAt: null,
+        },
+      });
+    }
+  }
+
+  return { received: true };
 };
 
 const getPayments = async (userId: string) => {
@@ -142,6 +331,8 @@ const getPaymentById = async (userId: string, paymentId: string) => {
 export const paymentService = {
   createPaymentIntent,
   confirmPayment,
+  confirmCheckoutSession,
+  handleStripeWebhook,
   getPayments,
   getPaymentById,
 };

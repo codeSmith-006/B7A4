@@ -5,3 +5,5 @@ export type PaymentIntentPayload = {
 export type ConfirmPaymentPayload = {
   paymentIntentId: string;
 };
+
+export type StripeWebhookPayload = Buffer | string;

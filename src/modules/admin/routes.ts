@@ -21,61 +21,55 @@ router.use(auth(UserRole.ADMIN));
  *         name: page
  *         schema:
  *           type: integer
- *           example: 1
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
- *           example: 10
  *       - in: query
  *         name: searchTerm
  *         schema:
  *           type: string
- *           example: ryan
- *         description: Partial, case-insensitive search on name, email, or phone
+ *         description: Optional. Applies partial, case-insensitive search on name, email, or phone only when provided.
  *       - in: query
  *         name: name
  *         schema:
  *           type: string
- *           example: Ryan Rehan
- *         description: Exact match filter by name
+ *         description: Optional. Exact match filter by name.
  *       - in: query
  *         name: email
  *         schema:
  *           type: string
  *           format: email
- *           example: ryan@example.com
- *         description: Exact match filter by email
+ *         description: Optional. Exact match filter by email.
  *       - in: query
  *         name: phone
  *         schema:
  *           type: string
- *           example: "+8801700000000"
- *         description: Exact match filter by phone
+ *         description: Optional. Exact match filter by phone.
  *       - in: query
  *         name: role
  *         schema:
  *           type: string
  *           enum: [ADMIN, LANDLORD, TENANT]
- *           example: TENANT
+ *         description: Optional. Filter by user role.
  *       - in: query
  *         name: status
  *         schema:
  *           type: string
  *           enum: [ACTIVE, BLOCKED]
- *           example: ACTIVE
+ *         description: Optional. Filter by user status.
  *       - in: query
  *         name: sortBy
  *         schema:
  *           type: string
- *           enum: [createdAt, updatedAt, name, email, role, status]
- *           example: createdAt
+ *           enum: [createdAt, name]
+ *         description: Optional. Sorting is applied only when sortBy is provided.
  *       - in: query
  *         name: sortOrder
  *         schema:
  *           type: string
  *           enum: [asc, desc]
- *           example: desc
+ *         description: Optional. Used only with sortBy.
  *     responses:
  *       200:
  *         description: Users retrieved successfully
@@ -142,85 +136,78 @@ router.patch("/users/:id", adminController.updateUserStatus);
  *         name: page
  *         schema:
  *           type: integer
- *           example: 1
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
- *           example: 10
  *       - in: query
  *         name: searchTerm
  *         schema:
  *           type: string
- *           example: apartment
- *         description: Partial, case-insensitive search on title or description
+ *         description: Optional. Applies partial, case-insensitive search on title or description only when provided.
  *       - in: query
  *         name: title
  *         schema:
  *           type: string
- *           example: Modern city apartment
- *         description: Exact match filter by title
+ *         description: Optional. Exact match filter by title.
  *       - in: query
  *         name: description
  *         schema:
  *           type: string
- *           example: A bright apartment near public transport.
- *         description: Exact match filter by description
+ *         description: Optional. Exact match filter by description.
  *       - in: query
  *         name: city
  *         schema:
  *           type: string
- *           example: Dhaka
- *         description: Exact match filter by city
+ *         description: Optional. Exact match filter by city.
  *       - in: query
  *         name: area
  *         schema:
  *           type: string
- *           example: Gulshan
- *         description: Exact match filter by area
+ *         description: Optional. Exact match filter by area.
  *       - in: query
  *         name: categoryId
  *         schema:
  *           type: string
- *           example: category_uuid
+ *         description: Optional. Filter by category id.
  *       - in: query
  *         name: minRent
  *         schema:
  *           type: number
- *           example: 500
+ *         description: Optional. Minimum rent filter.
  *       - in: query
  *         name: maxRent
  *         schema:
  *           type: number
- *           example: 2000
+ *         description: Optional. Maximum rent filter.
  *       - in: query
  *         name: bedrooms
  *         schema:
  *           type: integer
- *           example: 2
+ *         description: Optional. Filter by bedroom count.
  *       - in: query
  *         name: bathrooms
  *         schema:
  *           type: integer
- *           example: 2
+ *         description: Optional. Filter by bathroom count.
  *       - in: query
  *         name: status
  *         schema:
  *           type: string
  *           enum: [AVAILABLE, UNAVAILABLE]
- *           example: AVAILABLE
+ *         description: Optional. Filter by property status.
  *       - in: query
  *         name: sortBy
  *         schema:
  *           type: string
- *           enum: [createdAt, updatedAt, rent, bedrooms, bathrooms, title]
- *           example: createdAt
+ *           enum: [createdAt, rent]
+ *         description: Optional. Sorting is applied only when sortBy is provided.
  *       - in: query
  *         name: sortOrder
  *         schema:
  *           type: string
  *           enum: [asc, desc]
- *           example: desc
+ *         description: Optional. Used only with sortBy.
  *     responses:
  *       200:
  *         description: Properties retrieved successfully
@@ -249,61 +236,58 @@ router.get("/properties", adminController.getProperties);
  *         name: page
  *         schema:
  *           type: integer
- *           example: 1
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
- *           example: 10
  *       - in: query
  *         name: searchTerm
  *         schema:
  *           type: string
- *           example: visit
- *         description: Partial, case-insensitive search on rental message
+ *         description: Optional. Applies partial, case-insensitive search on rental message only when provided.
  *       - in: query
  *         name: status
  *         schema:
  *           type: string
  *           enum: [PENDING, APPROVED, REJECTED, PAID, ACTIVE]
- *           example: PENDING
+ *         description: Optional. Filter by rental request status.
  *       - in: query
  *         name: propertyId
  *         schema:
  *           type: string
- *           example: property_uuid
+ *         description: Optional. Filter by property id.
  *       - in: query
  *         name: tenantId
  *         schema:
  *           type: string
- *           example: tenant_uuid
+ *         description: Optional. Filter by tenant id.
  *       - in: query
  *         name: minMonthlyRent
  *         schema:
  *           type: number
- *           example: 500
+ *         description: Optional. Minimum monthly rent filter.
  *       - in: query
  *         name: maxMonthlyRent
  *         schema:
  *           type: number
- *           example: 2000
+ *         description: Optional. Maximum monthly rent filter.
  *       - in: query
  *         name: durationMonths
  *         schema:
  *           type: integer
- *           example: 12
+ *         description: Optional. Filter by rental duration in months.
  *       - in: query
  *         name: sortBy
  *         schema:
  *           type: string
- *           enum: [createdAt, updatedAt, moveInDate, durationMonths, monthlyRent, status]
- *           example: createdAt
+ *           enum: [createdAt, monthlyRent]
+ *         description: Optional. Sorting is applied only when sortBy is provided.
  *       - in: query
  *         name: sortOrder
  *         schema:
  *           type: string
  *           enum: [asc, desc]
- *           example: desc
+ *         description: Optional. Used only with sortBy.
  *     responses:
  *       200:
  *         description: Rentals retrieved successfully

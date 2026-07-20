@@ -36,6 +36,10 @@ const options: swaggerJSDoc.Options = {
         description: "Review endpoints",
       },
       {
+        name: "Payment",
+        description: "Stripe payment endpoints",
+      },
+      {
         name: "Admin",
         description: "Admin endpoints",
       },
@@ -303,10 +307,98 @@ const options: swaggerJSDoc.Options = {
             currency: { type: "string", example: "usd" },
             transactionId: { type: "string", example: "txn_123", nullable: true },
             paymentIntentId: { type: "string", example: "pi_123", nullable: true },
+            checkoutSessionId: { type: "string", example: "cs_test_123", nullable: true },
             clientSecret: { type: "string", example: "pi_123_secret_456", nullable: true },
             paidAt: { type: "string", format: "date-time", nullable: true },
             createdAt: { type: "string", format: "date-time" },
             updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        PaymentIntentPayload: {
+          type: "object",
+          required: ["rentalRequestId"],
+          properties: {
+            rentalRequestId: { type: "string", example: "rental_uuid" },
+          },
+        },
+        ConfirmPaymentPayload: {
+          type: "object",
+          required: ["paymentIntentId"],
+          properties: {
+            paymentIntentId: { type: "string", example: "pi_123" },
+          },
+        },
+        Payment: {
+          allOf: [
+            {
+              $ref: "#/components/schemas/RentalPayment",
+            },
+            {
+              type: "object",
+              properties: {
+                rentalRequest: {
+                  allOf: [
+                    {
+                      $ref: "#/components/schemas/RentalRequest",
+                    },
+                    {
+                      type: "object",
+                      properties: {
+                        property: {
+                          $ref: "#/components/schemas/RentalProperty",
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+        },
+        PaymentIntentResponse: {
+          type: "object",
+          properties: {
+            statusCode: { type: "integer", example: 201 },
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Checkout session created successfully" },
+            data: {
+              allOf: [
+                {
+                  $ref: "#/components/schemas/Payment",
+                },
+                {
+                  type: "object",
+                  properties: {
+                    checkoutUrl: { type: "string", example: "https://checkout.stripe.com/c/pay/cs_test_123" },
+                  },
+                },
+              ],
+            },
+          },
+        },
+        PaymentResponse: {
+          type: "object",
+          properties: {
+            statusCode: { type: "integer", example: 200 },
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Payment retrieved successfully" },
+            data: {
+              $ref: "#/components/schemas/Payment",
+            },
+          },
+        },
+        PaymentsResponse: {
+          type: "object",
+          properties: {
+            statusCode: { type: "integer", example: 200 },
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Payments retrieved successfully" },
+            data: {
+              type: "array",
+              items: {
+                $ref: "#/components/schemas/Payment",
+              },
+            },
           },
         },
         RentalReview: {
@@ -766,7 +858,7 @@ const options: swaggerJSDoc.Options = {
       },
     },
   },
-  apis: ["./src/modules/**/*.ts"],
+  apis: ["./src/modules/**/*.ts", "./src/payment/**/*.ts"],
 };
 
 export const swaggerSpec = swaggerJSDoc(options);

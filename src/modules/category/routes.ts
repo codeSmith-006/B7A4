@@ -17,42 +17,37 @@ const router = Router();
  *         name: page
  *         schema:
  *           type: integer
- *           example: 1
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
- *           example: 10
  *       - in: query
  *         name: searchTerm
  *         schema:
  *           type: string
- *           example: apartment
- *         description: Partial, case-insensitive search on name or description
+ *         description: Optional. Applies partial, case-insensitive search on name or description only when provided.
  *       - in: query
  *         name: name
  *         schema:
  *           type: string
- *           example: Apartment
- *         description: Exact match filter by category name
+ *         description: Optional. Exact match filter by category name.
  *       - in: query
  *         name: slug
  *         schema:
  *           type: string
- *           example: apartment
- *         description: Exact match filter by category slug
+ *         description: Optional. Exact match filter by category slug.
  *       - in: query
  *         name: sortBy
  *         schema:
  *           type: string
- *           enum: [name, createdAt, updatedAt]
- *           example: name
+ *           enum: [name, createdAt]
+ *         description: Optional. Sorting is applied only when sortBy is provided.
  *       - in: query
  *         name: sortOrder
  *         schema:
  *           type: string
  *           enum: [asc, desc]
- *           example: asc
+ *         description: Optional. Used only with sortBy.
  *     responses:
  *       200:
  *         description: Categories retrieved successfully
