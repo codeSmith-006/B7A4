@@ -1,5 +1,13 @@
 import swaggerJSDoc from "swagger-jsdoc";
+import path from "path";
 import config from "./index.js";
+
+const swaggerApiFiles = [
+  path.join(process.cwd(), "src/modules/**/*.ts"),
+  path.join(process.cwd(), "src/payment/**/*.ts"),
+  path.join(process.cwd(), "dist/src/modules/**/*.js"),
+  path.join(process.cwd(), "dist/src/payment/**/*.js"),
+];
 
 const options: swaggerJSDoc.Options = {
   definition: {
@@ -859,7 +867,7 @@ const options: swaggerJSDoc.Options = {
       },
     },
   },
-  apis: ["./src/modules/**/*.ts", "./src/payment/**/*.ts"],
+  apis: swaggerApiFiles,
 };
 
 export const swaggerSpec = swaggerJSDoc(options);
